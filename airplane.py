@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import random
 
 routes = np.array([0, 1, 2, 3, 4])
@@ -140,7 +141,7 @@ def mutation_all(population):
 
 
 def main():
-    initial_population_count = 200
+    initial_population_count = 20
     generation = 100
     all_population = []
     all_costs = []
