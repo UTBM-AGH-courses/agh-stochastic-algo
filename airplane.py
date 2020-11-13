@@ -2,6 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import random
+import copy
+
+class Member:
+    def __init__(self, airplane):
+        self.airplane = airplane
+        self.cost = 0
+        self.invert_cost = 0
 
 routes = np.array([0, 1, 2, 3, 4])
 revenu_lost_per_passenger_turned_away = np.array([13, 20, 7, 7, 15])
@@ -65,10 +72,10 @@ def get_revenu_lost_per_route(airplanes):
         string += 'Revenu lost on ' + str(index+1) + ' : ' + str(revenu_lost_temp) + ' => (' + str(passenger_demand_per_route[index]) + ' - ' + str(np.multiply(airplanes[index], aircraft_capacity_per_spot[index]).sum()) + ')' + ' * ' + str(revenu_lost_per_passenger_turned_away[index]) + ' \n'
     return revenu_lost
 
-def cost_function(airplanes):
+def cost_function(member):
     total_operating_cost = np.multiply(
-        operational_cost_per_spot, airplanes).sum()
-    total_revenu_lost = get_revenu_lost_per_route(airplanes)
+        operational_cost_per_spot, member.airplane).sum()
+    total_revenu_lost = get_revenu_lost_per_route(member.airplane)
     total_lost = total_operating_cost + total_revenu_lost
     return total_lost
 
@@ -77,7 +84,7 @@ def generate_first_population(pop_count):
     for index in range(0, pop_count):
         # generate a random distribution
         distribution = generate_aircraft_distribution()
-        all_population.append(distribution)
+        all_population.append(Member(distribution))
     return all_population
 
 def compute_costs(population):
@@ -85,43 +92,60 @@ def compute_costs(population):
     all_invert_costs = []
     for index in range(0, len(population)):
         cost = cost_function(population[index])
+        population[index].cost = cost
+        population[index].invert_cost = 1/cost
         all_invert_costs.append(1/cost)
         all_costs.append(cost)
-    return all_costs, all_invert_costs
+    return population
 
-def compute_probabilitis(all_costs, all_invert_costs):
-    sum_cost = sum(all_invert_costs)
+def compute_probabilitis(all_population):
+    sum_cost = sum(p.invert_cost for p in all_population)
     all_proba = []
-    for index in range(0, len(all_costs)):
-        proba = (1/all_costs[index]) / sum_cost
-        all_proba.append(proba)
-    return all_proba
+    for index in range(0, len(all_population)):
+        proba = (1/all_population[index].cost) / sum_cost
+        all_population[index].proba = proba
+    return all_population
 
-def pick_parents(all_population, all_proba):
+def pick_parents(all_population):
+    all_proba = list(map(lambda x: x.proba, all_population))
     return random.choices(all_population, weights=all_proba, k=2)
 
 def cross(parent1, parent2):
-    childs = [parent1.copy(), parent2.copy()]
+    childs = [copy.deepcopy(parent1), copy.deepcopy(parent2)]
     row_nb, column_nb = number_of_aircraft_per_spot.shape
     for index in range(0, column_nb):
         rand = random.uniform(0, 1)
-        cross_threshold = 0.1
+        cross_threshold = 0.8
         if (rand >= cross_threshold):
-            #print('Switch column', index)
-            childs[0][:, index] = parent2[:, index]
-            childs[1][:, index] = parent1[:, index]
+            childs[0].airplane[:, index] = parent2.airplane[:, index]
+            childs[1].airplane[:, index] = parent1.airplane[:, index]
     return childs[0], childs[1]
 
 def mutation(child):
     row_nb, column_nb = number_of_aircraft_per_spot.shape
     for index in range(0, column_nb):
         rand = random.uniform(0, 1)
-        mutation_threshold = 0.8
+        mutation_threshold = 0.2
         if (rand >= mutation_threshold):
-            #print('Regenerate column', index)
             aircraft_type_count = number_of_aircraft_avalaible_per_type[index]
             child[:, index] = generate_column(row_nb, aircraft_type_count)
     return child
+
+def mutation2(child):
+    row_nb, column_nb = number_of_aircraft_per_spot.shape
+    for index in range(0, column_nb):
+        rand = random.uniform(0, 1)
+        mutation_threshold = 0.8
+        if (rand >= mutation_threshold):
+            index1 = random.randint(0, row_nb-1)
+            index2 = random.randint(0, row_nb-1)
+            while index1 == index2:
+                index2 = random.randint(0, row_nb-1)
+            tmp = child.airplane[index1, index]
+            child.airplane[index1, index] = child.airplane[index2, index]
+            child.airplane[index2, index] = tmp
+    return child
+
 
 def mutation_all(population):
     row_nb, column_nb = number_of_aircraft_per_spot.shape
@@ -139,10 +163,17 @@ def mutation_all(population):
     return population
 
 
+def replace_with_better(all_population, child):
+    min_proba = min(all_population, key=lambda x: x.proba)
+    index = all_population.index(min_proba)
+    all_population[index] = child
+    return all_population
+
+
 
 def main():
     initial_population_count = 20
-    generation = 100
+    generation = 1000
     all_population = []
     all_costs = []
     all_invert_costs = []
@@ -154,24 +185,27 @@ def main():
 
     for gen in range(0, generation):
         # Get the cost
-        all_costs, all_invert_costs = compute_costs(all_population)
-        all_mins.append(min(all_costs))
+        all_population = compute_costs(all_population)
+        all_mins.append(min(all_population, key=lambda x: x.cost))
         # Compute probalities
-        all_proba = compute_probabilitis(all_costs, all_invert_costs)
+        all_population = compute_probabilitis(all_population)
         # Pick parents
-        parents = pick_parents(all_population, all_proba)
+        parents = pick_parents(all_population)
         parent1 = parents[0]
         parent2 = parents[1]
         # Cross parents
         child1, child2 = cross(parent1, parent2)
         # Mutations 
-        child1 = mutation(child1)
-        child2 = mutation(child2)
-        all_population.append(child1)
-        all_population.append(child2)
+        child1 = mutation2(child1)
+        child2 = mutation2(child2)
+        all_population = replace_with_better(all_population, child1)
+        all_population = replace_with_better(all_population, child2)
         print(gen)
 
-    plt.plot(all_mins)
+    results = list(map(lambda x: x.cost, all_mins))
+    print(all_mins[generation-1].airplane)
+    print(all_mins[generation-1].cost)
+    plt.plot(results)
     plt.ylabel('Total costs')
     plt.savefig('airplanes.png')
 
