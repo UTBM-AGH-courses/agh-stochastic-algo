@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import copy
+import math
 
 
 class PopulationMember:
@@ -54,14 +55,14 @@ def generate_column(row_nb, aircraft_type_count):
     return column
 
 
-def generate_aircraft_distribution():
+def generate_initial_population():
     # get the dimension (row*column) of the number_of_aircraft_per_spot matrix)
     row_nb, column_nb = number_of_aircraft_per_spot.shape
     distribution = np.zeros((row_nb, column_nb))
     for index in range(0, column_nb):
         # get the aircraft count per type
         aircraft_type_count = number_of_aircraft_available_per_type[index]
-        # generate the coresponding column and assign
+        # generate the corresponding column and assign
         distribution[:, index] = generate_column(row_nb, aircraft_type_count)
     return distribution
 
@@ -85,8 +86,8 @@ def get_revenu_lost_per_route(airplanes):
 def cost_function(member):
     total_operating_cost = np.multiply(
         operational_cost_per_spot, member.airplane).sum()
-    total_revenu_lost = get_revenu_lost_per_route(member.airplane)
-    total_lost = total_operating_cost + total_revenu_lost
+    total_revenue_lost = get_revenu_lost_per_route(member.airplane)
+    total_lost = total_operating_cost + total_revenue_lost
     return total_lost
 
 
@@ -94,7 +95,7 @@ def generate_first_population(pop_count):
     all_population = []
     for index in range(0, pop_count):
         # generate a random distribution
-        distribution = generate_aircraft_distribution()
+        distribution = generate_initial_population()
         all_population.append(PopulationMember(distribution))
     return all_population
 
@@ -109,31 +110,31 @@ def compute_costs(population):
 
 def compute_probabilities(all_population):
     sum_cost = sum(p.invert_cost for p in all_population)
-    all_proba = []
     for index in range(0, len(all_population)):
-        proba = (1 / all_population[index].cost) / sum_cost
-        all_population[index].proba = proba
+        probability = math.exp(math.exp((1 / all_population[index].cost) / sum_cost))
+        all_population[index].probability = probability
     return all_population
 
 
 def pick_parents(all_population):
-    all_proba = list(map(lambda x: x.proba, all_population))
-    return random.choices(all_population, weights=all_proba, k=2)
-
+    #all_proba = list(map(lambda x: x.probability, all_population))
+    #return random.choices(all_population, weights=all_proba, k=2)
+    parents = sorted(all_population, key=lambda k: k.cost)
+    return [parents[0], parents[1]]
 
 def cross(parent1, parent2, cross_threshold):
-    childs = [PopulationMember(copy.deepcopy(parent1.airplane)), PopulationMember(copy.deepcopy(parent2.airplane))]
+    children = [PopulationMember(copy.deepcopy(parent1.airplane)), PopulationMember(copy.deepcopy(parent2.airplane))]
     row_nb, column_nb = number_of_aircraft_per_spot.shape
     for index in range(0, column_nb):
         np.random.seed(10)
         rand = random.uniform(0, 1)
         if rand <= cross_threshold:
-            childs[0].airplane[:, index] = parent2.airplane[:, index]
-            childs[1].airplane[:, index] = parent1.airplane[:, index]
-    return childs[0], childs[1]
+            children[0].airplane[:, index] = copy.deepcopy(parent2.airplane[:, index])
+            children[1].airplane[:, index] = copy.deepcopy(parent1.airplane[:, index])
+    return children[0], children[1]
 
 
-def mutation(child, mutation_threshold):
+def mutation2(child, mutation_threshold):
     row_nb, column_nb = number_of_aircraft_per_spot.shape
     for index in range(0, column_nb):
         np.random.seed(10)
@@ -145,7 +146,7 @@ def mutation(child, mutation_threshold):
     return child
 
 
-def mutation2(child, mutation_threshold):
+def mutation(child, mutation_threshold):
     row_nb, column_nb = number_of_aircraft_per_spot.shape
     child_copy = copy.deepcopy(child)
     for index in range(0, column_nb):
@@ -157,13 +158,12 @@ def mutation2(child, mutation_threshold):
             while index1 == index2:
                 index2 = random.randint(0, row_nb - 1)
             tmp = child_copy.airplane[index1, index]
-            print("Mut " + str(index1) + " with " + str(index2) + "(column " + str(index) + ")")
             child_copy.airplane[index1, index] = child_copy.airplane[index2, index]
             child_copy.airplane[index2, index] = tmp
     return child_copy
 
 
-def get_new_population(all_population, cross_threshold, mutation_threshold):
+def generate_new_population(all_population, cross_threshold, mutation_threshold):
     new_pop = []
     for index in range(0, len(all_population)):
         parents = pick_parents(all_population)
@@ -174,30 +174,22 @@ def get_new_population(all_population, cross_threshold, mutation_threshold):
         rand_cross = random.uniform(0, 1)
         rand_mutation = random.uniform(0, 1)
         if rand_cross >= 0.5:
-            print("PICK 1")
             picked_child = child1
         else:
-            print("PICK 2")
             picked_child = child2
         if rand_mutation >= 0.5:
-            picked_child = mutation2(picked_child, mutation_threshold)
+            picked_child = mutation(picked_child, mutation_threshold)
         new_pop.append(copy.deepcopy(picked_child))
-
-    print(parent1.airplane)
-    print("#############################################")
     return new_pop
 
 
 def main():
     initial_population_count = 30
-    generation = 500
-    cross_threshold = 0.9
-    mutation_threshold = 0.2
-    all_population = []
-    all_costs = []
-    all_invert_costs = []
-    all_proba = []
+    generation = 400
+    cross_threshold = 0.8
+    mutation_threshold = 0.8
     all_mins = []
+    all_costs = []
 
     # initial population
     all_population = generate_first_population(initial_population_count)
@@ -205,11 +197,12 @@ def main():
     for gen in range(0, generation):
         # Get the cost
         all_population = compute_costs(all_population)
+        all_costs.append(np.array(list(map(lambda x: x.cost, all_population))))
         all_mins.append(min(all_population, key=lambda x: x.cost))
-        # Compute probalities
+        # Compute probabilities
         all_population = compute_probabilities(all_population)
         # Pick parents
-        all_population = get_new_population(
+        all_population = generate_new_population(
             all_population, cross_threshold, mutation_threshold)
         print(gen)
 
@@ -220,11 +213,11 @@ def main():
     title = 'Total costs : ' + str(all_mins[generation - 1].cost) + '$' + ' | Generation : ' + str(
         generation) + ', Initial population : ' + str(initial_population_count)
     plt.xlabel(title)
-    plt.savefig('airplanes_g' + str(generation) + '_i' + str(initial_population_count) +
+    plt.savefig('./airplanes_g' + str(generation) + '_i' + str(initial_population_count) +
                 '_cT' + str(cross_threshold) + '_mT' + str(mutation_threshold) + '.png')
 
-
 main()
+
 # Classical vauss sucessing
 # Algo ISS
 # For generation:
