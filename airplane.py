@@ -216,7 +216,7 @@ def main():
     plt.savefig('./airplanes_g' + str(generation) + '_i' + str(initial_population_count) +
                 '_cT' + str(cross_threshold) + '_mT' + str(mutation_threshold) + '.png')
 
-main()
+#main()
 
 # Classical vauss sucessing
 # Algo ISS
