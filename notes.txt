@@ -1,0 +1,33 @@
+X X X X X ==> the generation
+
+1)X X => X ==> The generation
+New generation = X X X X X X
+==> mu union lambda
+Change to mu+lambda (size parentale pop + size of pop of child)
+Child put in an other set (of size lambda)
+Then pick the best in lambda set
+If stagnation ==> change way of selection
+
+
+
+
+
+2) X X => X ==> X X X X X
+The elitist method
+New generation = X X X X X
+After stagnation = macro mutation
+
+origin mutation < 0.1
+Macro mut = increase a lot the diversity.
+Impl = change the mutation by increase it (close to 0.5 - 0.3)
+nb of step to use this new value = fixed or find individual with objective better than the previous one (0.8)
+restart ==> neightboorwood of the "better" solution
+
+feedback ==> memorise the min of the set and recognise where is the stagnation
+Restart from this point and be less elitist
+
+Compare results with Benjamin (2 types) :
+ - Final budget (give the same to both = cost of computation). Return min best obj + std
+ - Final result (reach the same result) = define stopping condition. Return the min number of steps + std
+
+

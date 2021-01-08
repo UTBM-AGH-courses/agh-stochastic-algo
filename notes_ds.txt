@@ -1,0 +1,5 @@
+1) Embigous problems, more than one solution
+2) 
+3) Genetic, Ant, Stepest decent, Gradiant
+Local opti (one solution) and Global opti (more than one solution)
+4) More than one soltuon ==> Insensibility (apparition de plateaux)
