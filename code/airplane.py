@@ -203,7 +203,7 @@ def generate_plot(generation, all_mins, initial_population_count,
             generation) + ', Initial population : ' + str(
                 initial_population_count)
     plt.xlabel(title)
-    plt.savefig('./airplanes_g' + str(generation) + '_i' +
+    plt.savefig('.outputs/airplanes_g' + str(generation) + '_i' +
                 str(initial_population_count) + '_cT' + str(cross_threshold) +
                 '_mT' + str(mutation_threshold) + '.png')
 
@@ -237,7 +237,7 @@ def draw_table2(table_vals, row_labels, col_labels, title):
                            color="w")
     plt.title(title)
     print('matplotlib-table_' + str(title))
-    plt.savefig('matplotlib-table_' + str(title) + '.png',
+    plt.savefig('./outputs/matplotlib-table_' + str(title) + '.png',
                 bbox_inches='tight',
                 pad_inches=0.05,
                 dpi=400)
@@ -266,7 +266,7 @@ def draw_table(table_vals, row_labels, col_labels, title):
                     labelleft=False)
     plt.title(title)
     print('matplotlib-table_' + str(title))
-    plt.savefig('matplotlib-table_' + str(title) + '.png',
+    plt.savefig('.outputs/matplotlib-table_' + str(title) + '.png',
                 bbox_inches='tight',
                 pad_inches=0.05)
 
