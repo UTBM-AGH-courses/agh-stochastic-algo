@@ -225,7 +225,7 @@ def draw_table(mean_of_mins, std_of_mins, times_of_mins,row_labels, col_labels, 
     im2 = ax2.imshow(mean_of_mins, aspect='auto')
     im3 = ax3.imshow(mean_of_mins, aspect='auto')
 
-    ax1.set_title("Mean of cost")
+    ax1.set_title("Mean of cost function call to reach 19200")
     ax2.set_title("Standard deviation")
     ax3.set_title("Time (sec.)")
 
@@ -295,40 +295,44 @@ def main():
     times_of_mins = []
     calls_of_mins = []
     calls_of_mins_std = []
-    generations = [20]
-    init_pops = [30]
-    reach = 19400
+    generations = [160]
+    init_pops = [80]
+    reach = 19200
     cross_threshold = float(sys.argv[1])
     mutation_threshold = float(sys.argv[2])
     runs = 40
+    # For each generations
     for gen in range(0, len(generations)):
+        generation = generations[gen]
         all_mins_mean = []
         all_mins_std = []
         all_mins_times = []
-        all_mins_calls = []
-        all_mins_calls_std = []
-        generation = generations[gen]
-        mins_of_pop = []
-        calls_of_pop = []
+        all_calls_of_pop = []
+        all_calls_of_pop_std = []
+        # For each population
         for init_p in range(0, len(init_pops)):
             initial_population_count = init_pops[init_p]
             start = time.time()
+            mins_of_pop = []
+            calls_of_pop = []
+            # Run n times
             for n in range(0, runs):
                 all_mins_of_the_current_gen = []
-                compute_cost_call = 0
                 # initial population
-                all_population_of_the_current_gen = generate_first_population(
-                    initial_population_count)
+                all_population_of_the_current_gen = generate_first_population(initial_population_count)
+                compute_cost_call = 0
                 print('Time :', n, 'and generation :', generation, 'for pop :',
                       initial_population_count)
+                # From 0 to the size of the generation
                 for gen_2 in range(0, generation):
                     # Compute the cost of all the population
                     all_population_of_the_current_gen = compute_costs(
                         all_population_of_the_current_gen)
                     # Get the minimum cost and add it into the list
-                    all_mins_of_the_current_gen.append(
-                        min(all_population_of_the_current_gen,
-                            key=lambda x: x.cost))
+                    min_cost = min(all_population_of_the_current_gen, key=lambda x: x.cost)
+                    all_mins_of_the_current_gen.append(min_cost)
+                    if (min_cost.cost >= reach):
+                        compute_cost_call += 1
                     # Compute probabilities
                     all_population_of_the_current_gen = compute_probabilities(
                         all_population_of_the_current_gen)
@@ -339,25 +343,25 @@ def main():
                 # Pick the last min (the best we get) and put it into the min of mins
                 mins_of_pop.append(all_mins_of_the_current_gen[generation -
                                                                1].cost)
-                if (all_mins_of_the_current_gen[gen].cost >= reach):
-                    print(all_mins_of_the_current_gen[gen].cost)
-
+                # Pick the number of time the cost function have been called to reach the REACH value
+                calls_of_pop.append(compute_cost_call)
+                print(calls_of_pop)
             # After 10 tried, only keep the mean of all the mins
             print("###############")
             all_mins_mean.append(round(statistics.mean(mins_of_pop)))
             all_mins_std.append(round(statistics.stdev(mins_of_pop), 2))
+            all_calls_of_pop.append(round(statistics.mean(calls_of_pop), 2))
+            all_calls_of_pop_std.append(round(statistics.stdev(calls_of_pop), 2))
             all_mins_times.append(round((time.time() - start)/runs, 2))
-            #all_mins_calls.append(round(statistics.mean(calls_of_pop), 2))
-            #all_mins_calls_std.append(round(statistics.mean(calls_of_pop), 2))
         # Put the array of mins into the array containing all array of mins
         mins_of_mins.append(all_mins_mean)
         std_of_mins.append(all_mins_std)
         times_of_mins.append(all_mins_times)
-        #calls_of_mins.append(all_mins_calls)
-        #calls_of_mins_std.append(all_mins_calls_std)
+        calls_of_mins.append(all_calls_of_pop)
+        calls_of_mins_std.append(all_calls_of_pop_std)
         #generate_plot(generation, all_mins, initial_population_count, cross_threshold, mutation_threshold)
-    draw_table(mins_of_mins,
-                std_of_mins,
+    draw_table(calls_of_mins,
+                calls_of_mins_std,
                 times_of_mins,
                 row_labels=generations,
                 col_labels=init_pops,
