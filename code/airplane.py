@@ -1,10 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+import sys
 from scipy import stats
 import statistics
 import random
 import copy
 import math
+import time
 
 
 class PopulationMember:
@@ -208,34 +211,77 @@ def generate_plot(generation, all_mins, initial_population_count,
                 '_mT' + str(mutation_threshold) + '.png')
 
 
-def draw_table2(table_vals, row_labels, col_labels, title):
-    fig, ax = plt.subplots()
+def draw_table(mean_of_mins, std_of_mins, times_of_mins,row_labels, col_labels, title):
+
+    fig = plt.figure(figsize=(12, 4))
+    gs = GridSpec(nrows=2, ncols=2)
+
+    ax1 = fig.add_subplot(gs[:, 1])
+    ax2 = fig.add_subplot(gs[1, 0])
+    ax3 = fig.add_subplot(gs[0, 0])
+
     plt.set_cmap('Spectral')
-    im = ax.imshow(table_vals, aspect='auto')
+    im = ax1.imshow(mean_of_mins, aspect='auto')
+    im2 = ax2.imshow(mean_of_mins, aspect='auto')
+    im3 = ax3.imshow(mean_of_mins, aspect='auto')
+
+    ax1.set_title("Mean of cost")
+    ax2.set_title("Standard deviation")
+    ax3.set_title("Time (sec.)")
 
     # We want to show all ticks...
-    ax.set_xticks(np.arange(len(col_labels)))
-    ax.set_yticks(np.arange(len(row_labels)))
+    ax1.set_xticks(np.arange(len(col_labels)))
+    ax1.set_yticks(np.arange(len(row_labels)))
+    # We want to show all ticks...
+    ax2.set_xticks(np.arange(len(col_labels)))
+    ax2.set_yticks(np.arange(len(row_labels)))
+    # We want to show all ticks...
+    ax3.set_yticks(np.arange(len(row_labels)))
     # ... and label them with the respective list entries
-    ax.set_xticklabels(list(map(lambda x: "p=" + str(x), col_labels)))
-    ax.set_yticklabels(list(map(lambda x: "g=" + str(x), row_labels)))
+    ax1.set_xticklabels(list(map(lambda x: "p=" + str(x), col_labels)))
+    ax1.set_yticklabels(list(map(lambda x: "g=" + str(x), row_labels)))
+    # ... and label them with the respective list entries
+    ax2.set_xticklabels(list(map(lambda x: "p=" + str(x), col_labels)))
+    ax2.set_yticklabels(list(map(lambda x: "g=" + str(x), row_labels)))
+    # ... and label them with the respective list entries
+    ax3.set_yticklabels(list(map(lambda x: "g=" + str(x), row_labels)))
 
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(),
+    plt.setp(ax1.get_xticklabels(),
              rotation=45,
              ha="right",
              rotation_mode="anchor")
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax2.get_xticklabels(),
+             rotation=45,
+             ha="right",
+             rotation_mode="anchor")
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax3.get_xticklabels(),
+             visible=False)
 
     # Loop over data dimensions and create text annotations.
     for i in range(len(row_labels)):
         for j in range(len(col_labels)):
-            text = ax.text(j,
+            text = ax1.text(j,
                            i,
-                           table_vals[i][j],
+                           mean_of_mins[i][j],
                            ha="center",
                            va="center",
-                           color="w")
-    plt.title(title)
+                           color="black")
+            text2 = ax2.text(j,
+                           i,
+                           std_of_mins[i][j],
+                           ha="center",
+                           va="center",
+                           color="black")
+            text3 = ax3.text(j,
+                           i,
+                           times_of_mins[i][j],
+                           ha="center",
+                           va="center",
+                           color="black")
+    plt.suptitle(title)
     print('matplotlib-table_' + str(title))
     plt.savefig('./outputs/matplotlib-table_' + str(title) + '.png',
                 bbox_inches='tight',
@@ -243,49 +289,33 @@ def draw_table2(table_vals, row_labels, col_labels, title):
                 dpi=400)
 
 
-def draw_table(table_vals, row_labels, col_labels, title):
-    the_table = plt.table(
-        cellText=table_vals,
-        rowLabels=list(map(lambda x: "p=" + str(x), row_labels)),
-        colLabels=list(map(lambda x: "g=" + str(x), col_labels)),
-        loc='center')
-    the_table.auto_set_font_size(False)
-    the_table.set_fontsize(24)
-    the_table.scale(6, 6)
-    for pos in ['right', 'top', 'bottom', 'left']:
-        plt.gca().spines[pos].set_visible(False)
-    plt.tick_params(axis='x',
-                    which='both',
-                    bottom=False,
-                    top=False,
-                    labelbottom=False)
-    plt.tick_params(axis='y',
-                    which='both',
-                    right=False,
-                    left=False,
-                    labelleft=False)
-    plt.title(title)
-    print('matplotlib-table_' + str(title))
-    plt.savefig('.outputs/matplotlib-table_' + str(title) + '.png',
-                bbox_inches='tight',
-                pad_inches=0.05)
-
-
 def main():
     mins_of_mins = []
-    generations = [5, 10, 20, 100, 200]
-    init_pops = [5, 10, 20, 50, 80]
-    cross_threshold = 0.7
-    mutation_threshold = 0.25
-    runs = 10
+    std_of_mins = []
+    times_of_mins = []
+    calls_of_mins = []
+    calls_of_mins_std = []
+    generations = [20]
+    init_pops = [30]
+    reach = 19400
+    cross_threshold = float(sys.argv[1])
+    mutation_threshold = float(sys.argv[2])
+    runs = 40
     for gen in range(0, len(generations)):
         all_mins_mean = []
+        all_mins_std = []
+        all_mins_times = []
+        all_mins_calls = []
+        all_mins_calls_std = []
         generation = generations[gen]
         mins_of_pop = []
+        calls_of_pop = []
         for init_p in range(0, len(init_pops)):
             initial_population_count = init_pops[init_p]
+            start = time.time()
             for n in range(0, runs):
                 all_mins_of_the_current_gen = []
+                compute_cost_call = 0
                 # initial population
                 all_population_of_the_current_gen = generate_first_population(
                     initial_population_count)
@@ -309,13 +339,26 @@ def main():
                 # Pick the last min (the best we get) and put it into the min of mins
                 mins_of_pop.append(all_mins_of_the_current_gen[generation -
                                                                1].cost)
+                if (all_mins_of_the_current_gen[gen].cost >= reach):
+                    print(all_mins_of_the_current_gen[gen].cost)
+
             # After 10 tried, only keep the mean of all the mins
             print("###############")
             all_mins_mean.append(round(statistics.mean(mins_of_pop)))
+            all_mins_std.append(round(statistics.stdev(mins_of_pop), 2))
+            all_mins_times.append(round((time.time() - start)/runs, 2))
+            #all_mins_calls.append(round(statistics.mean(calls_of_pop), 2))
+            #all_mins_calls_std.append(round(statistics.mean(calls_of_pop), 2))
         # Put the array of mins into the array containing all array of mins
         mins_of_mins.append(all_mins_mean)
+        std_of_mins.append(all_mins_std)
+        times_of_mins.append(all_mins_times)
+        #calls_of_mins.append(all_mins_calls)
+        #calls_of_mins_std.append(all_mins_calls_std)
         #generate_plot(generation, all_mins, initial_population_count, cross_threshold, mutation_threshold)
-    draw_table2(mins_of_mins,
+    draw_table(mins_of_mins,
+                std_of_mins,
+                times_of_mins,
                 row_labels=generations,
                 col_labels=init_pops,
                 title='cT=' + str(cross_threshold) + ' & mT=' +
