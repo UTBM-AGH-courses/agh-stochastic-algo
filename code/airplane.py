@@ -295,8 +295,8 @@ def main():
     times_of_mins = []
     calls_of_mins = []
     calls_of_mins_std = []
-    generations = [160]
-    init_pops = [80]
+    generations = [10, 15, 20, 25, 30, 35, 40, 45]
+    init_pops = [10, 15, 20, 25, 30, 35, 40, 45]
     reach = 19200
     cross_threshold = float(sys.argv[1])
     mutation_threshold = float(sys.argv[2])
@@ -345,7 +345,6 @@ def main():
                                                                1].cost)
                 # Pick the number of time the cost function have been called to reach the REACH value
                 calls_of_pop.append(compute_cost_call)
-                print(calls_of_pop)
             # After 10 tried, only keep the mean of all the mins
             print("###############")
             all_mins_mean.append(round(statistics.mean(mins_of_pop)))
@@ -360,8 +359,8 @@ def main():
         calls_of_mins.append(all_calls_of_pop)
         calls_of_mins_std.append(all_calls_of_pop_std)
         #generate_plot(generation, all_mins, initial_population_count, cross_threshold, mutation_threshold)
-    draw_table(calls_of_mins,
-                calls_of_mins_std,
+    draw_table(mins_of_mins,
+                std_of_mins,
                 times_of_mins,
                 row_labels=generations,
                 col_labels=init_pops,
