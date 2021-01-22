@@ -68,6 +68,7 @@ def generate_population_member():
         distribution[:, index] = generate_column(row_nb, aircraft_type_count)
     return distribution
 
+
 # Function to generate the initial population
 def generate_first_population(pop_count):
     all_population = []
@@ -82,11 +83,11 @@ def generate_first_population(pop_count):
 def get_revenu_lost_per_route(airplanes):
     revenu_lost = 0
     for index in routes:
-        revenu_lost += max(
-            ((passenger_demand_per_route[index] - np.multiply(
-                airplanes[index], aircraft_capacity_per_spot[index]).sum()) *
-             revenue_lost_per_passenger_turned_away[index]), 0)
+        revenu_lost += max(((passenger_demand_per_route[index] - np.multiply(
+            airplanes[index], aircraft_capacity_per_spot[index]).sum()) *
+                            revenue_lost_per_passenger_turned_away[index]), 0)
     return revenu_lost
+
 
 # The cost function
 def cost_function(member):
@@ -96,6 +97,7 @@ def cost_function(member):
     total_lost = total_operating_cost + total_revenue_lost
     return total_lost
 
+
 # Function to compute the cost of all the population
 def compute_costs(population):
     for index in range(0, len(population)):
@@ -103,6 +105,7 @@ def compute_costs(population):
         population[index].cost = cost
         population[index].invert_cost = 1 / cost
     return population
+
 
 # Function to compute the picking probability according to the cost
 def compute_probabilities(all_population):
@@ -113,12 +116,15 @@ def compute_probabilities(all_population):
         all_population[index].probability = probability
     return all_population
 
+
 # Function to pick the two best individual among the population
 def pick_parents_elitist(all_population):
     parents = sorted(all_population, key=lambda k: k.cost)
     return [parents[0], parents[1]]
 
-# Function to pick the two best individual among the population according to their probability
+
+# Function to pick the two best individual among the population 
+# according to their probability
 def pick_parents_proba(all_population):
     all_proba = list(map(lambda x: x.probability, all_population))
     return random.choices(all_population, weights=all_proba, k=2)
@@ -135,7 +141,8 @@ def cross(parent1, parent2, cross_threshold):
     for index in range(0, column_nb):
         np.random.seed(10)
         rand = random.uniform(0, 1)
-        # If the random is lower than the threshold, the two column are switched
+        # If the random is lower than the threshold, the two 
+        # column are switched
         if rand <= cross_threshold:
             children[0].airplane[:, index] = copy.deepcopy(
                 parent2.airplane[:, index])
@@ -155,6 +162,7 @@ def mutation_generate_column(child, mutation_threshold):
             child.airplane[:, index] = generate_column(row_nb,
                                                        aircraft_type_count)
     return child
+
 
 # Mutation function by switching two values of the same column
 def mutation_switch_one_element(child, mutation_threshold):
@@ -192,7 +200,8 @@ def generate_new_population(all_population, cross_threshold,
         else:
             picked_child = child2
         if rand_mutation >= 0.5:
-            picked_child = mutation_switch_one_element(picked_child, mutation_threshold)
+            picked_child = mutation_switch_one_element(picked_child,
+                                                       mutation_threshold)
         new_pop.append(copy.deepcopy(picked_child))
     return new_pop
 
@@ -297,12 +306,12 @@ def main():
     times_of_mins = []
     calls_of_mins = []
     calls_of_mins_std = []
-    generations = [10, 15]
-    init_pops = [10, 15, 20, 25]
+    generations = [160]
+    init_pops = [80]
     reach = 19200
     cross_threshold = float(sys.argv[1])
     mutation_threshold = float(sys.argv[2])
-    runs = 15
+    runs = 2
     # For each generations
     for gen in range(0, len(generations)):
         generation = generations[gen]
@@ -344,10 +353,12 @@ def main():
                     all_population_of_the_current_gen = generate_new_population(
                         all_population_of_the_current_gen, cross_threshold,
                         mutation_threshold)
-                # Pick the last min (the best we get) and put it into the min of mins
+                # Pick the last min (the best we get) and put it 
+                # into the min of mins
                 mins_of_pop.append(all_mins_of_the_current_gen[generation -
                                                                1].cost)
-                # Pick the number of time the cost function have been called to reach the REACH value
+                # Pick the number of time the cost function have 
+                # been called to reach the REACH value
                 calls_of_pop.append(compute_cost_call)
             # After 10 tried, only keep the mean of all the mins
             print("###############")
@@ -363,14 +374,15 @@ def main():
         times_of_mins.append(all_mins_times)
         calls_of_mins.append(all_calls_of_pop)
         calls_of_mins_std.append(all_calls_of_pop_std)
-        #generate_plot(generation, all_mins, initial_population_count, cross_threshold, mutation_threshold)
-    draw_table(mins_of_mins,
-               std_of_mins,
-               times_of_mins,
-               row_labels=generations,
-               col_labels=init_pops,
-               title='cT=' + str(cross_threshold) + ' & mT=' +
-               str(mutation_threshold) + " (" + str(runs) + " runs)")
+        generate_plot(generation, mins_of_pop, initial_population_count,
+                      cross_threshold, mutation_threshold)
+    #draw_table(mins_of_mins,
+    #           std_of_mins,
+    #           times_of_mins,
+    #           row_labels=generations,
+    #           col_labels=init_pops,
+    #           title='cT=' + str(cross_threshold) + ' & mT=' +
+    #           str(mutation_threshold) + " (" + str(runs) + " runs)")
 
 
 main()

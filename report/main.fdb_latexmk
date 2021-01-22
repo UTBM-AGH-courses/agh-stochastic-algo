@@ -1,0 +1,18 @@
+# Fdb version 3
+["pdflatex"] 1611307555 "/home/valentin/Documents/AGH/Stochastic/report/main.tex" "/home/valentin/Documents/AGH/Stochastic/report/main.pdf" "main" 1611307555
+  "/etc/texmf/web2c/texmf.cnf" 1611256472 475 c0e671620eb5563b2130f56340a5fde8 ""
+  "/home/valentin/Documents/AGH/Stochastic/report/main.aux" 1611307555 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/home/valentin/Documents/AGH/Stochastic/report/main.tex" 1611307554 41245 58e64ffd73eeb66caf8a204720548b7c ""
+  "/home/valentin/Documents/AGH/Stochastic/report/tcolorbox.sty" 0 -1 0 ""
+  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr10.tfm" 1136768653 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
+  "/usr/share/texlive/texmf-dist/tex/latex/base/article.cls" 1580683321 20023 e427dd9e17e239bf926ef3aab67fe35e ""
+  "/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo" 1580683321 8462 61fdf79debfc3dc4dab35ec6cf83fbf7 ""
+  "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
+  "/usr/share/texmf/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
+  "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1611256485 4791332 42ce9580280f0c2690efe469f1f11a52 ""
+  "main.tex" 1611307554 41245 58e64ffd73eeb66caf8a204720548b7c ""
+  "tcolorbox.sty" 0 -1 0 ""
+  (generated)
+  "/home/valentin/Documents/AGH/Stochastic/report/main.log"
+  "/home/valentin/Documents/AGH/Stochastic/report/main.pdf"
+  "main.log"

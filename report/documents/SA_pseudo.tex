@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[linesnumbered,ruled]{algorithm2e}
+
+\begin{document}
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetAlgoLined
+\SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+\Input{Temperature , DecreaseFactor}
+\Output{CurrentCandidate}
+\BlankLine
+Initialize randomly FirstCandidate\;
+$CurrentCandidate \gets FirstCandidate$\;
+\BlankLine
+\While{Temperature \mathrel{\mathtt{<}} 0.1}{
+    \BlankLine
+    \For{\texttt{ step = 0 ; step < 4 ; step++ }}
+    {
+         \BlankLine
+        Generate 4 Neighbors using CurrentCandidate by only modifying column number \textbf{step} \;
+        Find the BestNeighbor (with minimum cost)\;
+        CostDifference \gets BestNeighbor Cost - CurrentCandidate Cost\;
+        \BlankLine
+        \uIf{$CostDifference < 0$}
+        {
+            \BlankLine
+            $CurrentCandidate \gets BestNeighbor$\;
+        }
+        \BlankLine
+        \uElseIf{RandomProbability \texttt{<} exp($-\frac{CostDifference}{Temperature}$)}
+        {
+            \BlankLine
+            $CurrentCandidate \gets BestNeighbor$\;
+        }
+    }
+    \BlankLine
+    $Temperature \gets Temperature * ( 1 - DecreaseFactor)$\;
+    \BlankLine
+}
+\BlankLine
+Return CurrentCandidate\;
+\caption{Simulated Annealing}
+\end{algorithm} 
+\end{document} 
