@@ -217,7 +217,7 @@ def generate_plot(generation, all_mins, initial_population_count,
             generation) + ', Initial population : ' + str(
                 initial_population_count)
     plt.xlabel(title)
-    plt.savefig('.outputs/airplanes_g' + str(generation) + '_i' +
+    plt.savefig('../outputs/airplanes_g' + str(generation) + '_i' +
                 str(initial_population_count) + '_cT' + str(cross_threshold) +
                 '_mT' + str(mutation_threshold) + '.png')
 
@@ -294,7 +294,7 @@ def draw_table(mean_of_mins, std_of_mins, times_of_mins, row_labels,
                              color="black")
     plt.suptitle(title)
     print('matplotlib-table_' + str(title))
-    plt.savefig('./outputs/matplotlib-table_' + str(title) + '.png',
+    plt.savefig('../outputs/matplotlib-table_' + str(title) + '.png',
                 bbox_inches='tight',
                 pad_inches=0.05,
                 dpi=400)
@@ -374,15 +374,15 @@ def main():
         times_of_mins.append(all_mins_times)
         calls_of_mins.append(all_calls_of_pop)
         calls_of_mins_std.append(all_calls_of_pop_std)
-        generate_plot(generation, mins_of_pop, initial_population_count,
-                      cross_threshold, mutation_threshold)
-    #draw_table(mins_of_mins,
-    #           std_of_mins,
-    #           times_of_mins,
-    #           row_labels=generations,
-    #           col_labels=init_pops,
-    #           title='cT=' + str(cross_threshold) + ' & mT=' +
-    #           str(mutation_threshold) + " (" + str(runs) + " runs)")
+        #generate_plot(generation, mins_of_pop, initial_population_count,
+        #              cross_threshold, mutation_threshold)
+    draw_table(mins_of_mins,
+               std_of_mins,
+               times_of_mins,
+               row_labels=generations,
+               col_labels=init_pops,
+               title='cT=' + str(cross_threshold) + ' & mT=' +
+               str(mutation_threshold) + " (" + str(runs) + " runs)")
 
 
 main()
